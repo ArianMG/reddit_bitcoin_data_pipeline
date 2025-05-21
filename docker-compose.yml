@@ -1,0 +1,109 @@
+services:
+  # -------------------- Zookeeper + Kafka --------------------
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  # -------------------- MongoDB --------------------
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - 27017:27017
+
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    depends_on:
+      - mongo
+
+
+  # -------------------- PostgreSQL (Airflow backend) --------------------
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # -------------------- Airflow Webserver --------------------
+  airflow:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: airflow
+    entrypoint: /bin/bash
+    command: -c "
+        airflow db migrate &&
+        airflow users create --username ${AIRFLOW_USER} --password ${AIRFLOW_PASSWORD} --firstname Air --lastname Flow --role Admin --email ${AIRFLOW_EMAIL} &&
+        airflow webserver"
+    ports:
+      - "8080:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./app:/app
+    depends_on:
+      - postgres
+
+  # -------------------- Airflow Scheduler --------------------
+  airflow-scheduler:
+    build:
+      context: ./airflow
+      dockerfile: Dockerfile
+    container_name: airflow_scheduler
+    command: airflow scheduler
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./app:/app
+    depends_on:
+      - postgres
+      - airflow
+
+  # -------------------- Mi App --------------------
+  app:
+    build: ./app
+    volumes:
+    - ./app:/app
+    depends_on:
+      - kafka
+      - mongo
+
+volumes:
+  postgres_data:

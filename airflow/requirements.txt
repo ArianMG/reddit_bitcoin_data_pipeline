@@ -1,0 +1,6 @@
+psycopg2-binary
+praw
+kafka-python
+nltk
+pymongo
+python-dotenv
