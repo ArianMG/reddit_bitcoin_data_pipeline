@@ -13,14 +13,14 @@ with DAG(
     catchup=False
 ) as dag:
 
-    extraer_reddit = BashOperator(
-        task_id="extraer_desde_reddit",
+    extract = BashOperator(
+        task_id="extract_from_reddit",
         bash_command="python /app/producer.py"
     )
 
-    procesar_palabras = BashOperator(
-        task_id="procesar_y_guardar_palabras",
+    process = BashOperator(
+        task_id="process_and_store_words",
         bash_command="python /app/consumer.py"
     )
 
-    extraer_reddit >> procesar_palabras
+    extract >> process

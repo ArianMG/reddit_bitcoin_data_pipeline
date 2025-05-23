@@ -1,77 +1,75 @@
+import json
+import datetime
+from collections import Counter, defaultdict
 from kafka import KafkaConsumer
 from pymongo import MongoClient
-from collections import Counter, defaultdict
-import json
 import nltk
-import datetime
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 
-nltk.download('punkt')
-nltk.download('punkt_tab')
-nltk.download('stopwords')
-
+# --- Define stopwords in English and Spanish --- #
 stopwords_es = set(stopwords.words('spanish'))
 stopwords_en = set(stopwords.words('english'))
 stopwords_total = stopwords_es.union(stopwords_en)
 
-# --- Configuración general ---
-TOPIC = 'reddit-bitcoin-topic'
-MAX_MENSAJES = 1000
-KAFKA_SERVERS = 'kafka:9092'
-MONGO_URI = 'mongodb://mongo:27017/'
+# --- Configuration constants --- #
+TOPIC = 'reddit-bitcoin-topic'            # Kafka topic to consume from
+MAX_MENSAJES = 1000                       # Max number of messages to process
+KAFKA_SERVERS = 'kafka:9092'              # Kafka broker address
+MONGO_URI = 'mongodb://mongo:27017/'      # MongoDB connection URI
 
-# Kafka consumer config
+# --- Initialize Kafka Consumer --- #
 consumer = KafkaConsumer(
     TOPIC,
     bootstrap_servers=KAFKA_SERVERS,
     value_deserializer=lambda m: json.loads(m.decode('utf-8')),
-    auto_offset_reset='earliest',
+    auto_offset_reset='earliest',         # Read from the beginning of the topic
     enable_auto_commit=True,
-    consumer_timeout_ms=5000
+    consumer_timeout_ms=5000              # Stop after 5 seconds of no new messages
 )
 
-# MongoDB config
+# --- Connect to MongoDB --- #
 mongo_client = MongoClient(MONGO_URI)
 db = mongo_client['reddit_bitcoin']
-coleccion = db['palabras_mas_mencionadas_por_hora']
+collection = db['top_words_by_hour']      # Target collection for storing results
 
-# Procesamiento
-conteo_por_hora = defaultdict(Counter)
+# Dictionary to count words per hour
+count_by_hour = defaultdict(Counter)
 
-print("📥 Procesando mensajes de Kafka...")
+print("Processing Kafka messages...")
 
-contador_mensajes = 0
+message_counter = 0
 
-for mensaje in consumer:
-    data = mensaje.value
-    texto = f"{data.get('titulo', '')} {data.get('texto', '')}"
+# --- Consume and process messages from Kafka --- #
+for message in consumer:
+    data = message.value
+    text = f"{data.get('title', '')} {data.get('body', '')}"
 
-    fecha_hora = datetime.datetime.utcfromtimestamp(data['fecha']).strftime('%Y-%m-%d %H:00')
+    # Extract UTC hour from timestamp (format: YYYY-MM-DD HH:00)
+    date_hour = datetime.datetime.utcfromtimestamp(data['timestamp']).strftime('%Y-%m-%d %H:00')
 
-    tokens = word_tokenize(texto.lower())
-    palabras = [token for token in tokens if token.isalpha() and token not in stopwords_total]
+    # Tokenize and clean text
+    tokens = word_tokenize(text.lower())
+    words = [token for token in tokens if token.isalpha() and token not in stopwords_total]
 
-    if fecha_hora not in conteo_por_hora:
-        conteo_por_hora[fecha_hora] = Counter()
+    # Update word count for the given hour
+    count_by_hour[date_hour].update(words)
+    message_counter += 1
 
-    conteo_por_hora[fecha_hora].update(palabras)
-    contador_mensajes += 1
-
-    if contador_mensajes >= MAX_MENSAJES:
-        print("📦 Límite alcanzado, deteniendo...")
+    if message_counter >= MAX_MENSAJES:
+        print("Limit reached, stopping...")
         break
 
-# --- Guardar resultados en MongoDB ---
-print("💾 Guardando resultados en MongoDB...")
+# --- Save results into MongoDB --- #
+print("Saving results to MongoDB...")
 
-for fecha_hora, contador in conteo_por_hora.items():
-    top_palabras = contador.most_common(10)
-    coleccion.update_one(
-        {"fecha": fecha_hora},
-        {"$set": {"palabras": top_palabras}},
+for date, count in count_by_hour.items():
+    top_words = count.most_common(10)
+    collection.update_one(
+        {"timestamp": date},
+        {"$set": {"words": top_words}},
         upsert=True
     )
-    print(f"✅ {fecha_hora} -> {top_palabras}")
+    print(f"{date} -> {top_words}")
 
-print("🏁 Proceso completado.")
+print("Process completed")
