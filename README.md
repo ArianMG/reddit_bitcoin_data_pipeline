@@ -19,7 +19,6 @@ reddit_bitcoin_data_pipeline/
 ├── app/
 │   ├── producer.py
 │   ├── consumer.py
-│   ├── .env
 │   ├── Dockerfile
 │   └── requirements.txt
 ```
@@ -32,32 +31,27 @@ git clone https://github.com/ArianMG/reddit_bitcoin_data_pipeline.git
 cd reddit_bitcoin_data_pipeline
 ```
 
-### 2. Create `.env` file in root directory for docker compose
-This file will be used to configure PostgreSQL, MongoDB, and Airflow.
-```env
-# .env
-POSTGRES_USER=postgres_user
-POSTGRES_PASSWORD=postgres_password
-POSTGRES_DB=postgres_db
+### 2. Create `.env` file in root directory for docker compose and Reddit API credentials
+This file will be used to configure PostgreSQL, MongoDB, Airflow, and Reddit API
 
-MONGO_INITDB_ROOT_USERNAME=mongo_user
-MONGO_INITDB_ROOT_PASSWORD=mongo_password
-
-AIRFLOW_USER=airflow_user
-AIRFLOW_PASSWORD=airflow_password
-AIRFLOW_EMAIL=airflow_email
 ```
+REDDIT_CLIENT_ID=<REDDIT_CLIENT_ID>
+REDDIT_CLIENT_SECRET=<REDDIT_CLIENT_SECRET>
+REDDIT_USER_AGENT=<REDDIT_USER_AGENT>
+REDDIT_USERNAME=<REDDIT_USERNAME>
+REDDIT_PASSWORD=<REDDIT_PASSWORD>
 
-### 3. Create Reddit API Credentials in `.env`
-Create a file named `.env` inside the `app/` folder with the following content:
-```env
-REDDIT_CLIENT_ID=your_id
-REDDIT_CLIENT_SECRET=your_secret
-REDDIT_USER_AGENT=your_user_agent
-REDDIT_USERNAME=your_username
-REDDIT_PASSWORD=your_password
+POSTGRES_USER=<POSTGRES_USER>
+POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
+POSTGRES_DB=<POSTGRES_DB>
+
+MONGO_INITDB_ROOT_USERNAME=<MONGO_USERNAME>
+MONGO_INITDB_ROOT_PASSWORD=<MONGO_PASSWORD>
+
+AIRFLOW_USER=<AIRFLOW_USER>
+AIRFLOW_PASSWORD=<AIRFLOW_PASSWORD>
+AIRFLOW_EMAIL=<AIRFLOW_EMAIL>
 ```
-These will be automatically loaded into the producer.
 
 ### 3. Run the stack
 ```bash
@@ -112,8 +106,8 @@ sudo chown -R 50000:0 airflow/logs
 ## 📈 Example Output in MongoDB
 ```json
 {
-  "fecha": "2025-05-20T15:42:00",
-  "palabras": [["bitcoin", 21], ["btc", 14], ["price", 9]]
+  "timestamp": "2025-05-20T15:42:00",
+  "words": [["bitcoin", 21], ["btc", 14], ["price", 9]]
 }
 ```
 
