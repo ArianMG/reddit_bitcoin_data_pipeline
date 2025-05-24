@@ -1,20 +1,25 @@
 FROM apache/airflow:2.8.1-python3.11
 
-# Cambiar a root para instalar paquetes del sistema
+# Switch to root user to install system packages
 USER root
 
-# Instalar dependencias del sistema (si necesitas curl u otras)
+# Install system dependencies
 RUN apt-get update && \
     apt-get install -y curl && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Cambiar de nuevo a airflow
+# Switch back to the Airflow user, which is the default for Airflow
 USER airflow
 
-# Instalar dependencias Python
-COPY requirements.txt /requirements.txt
-RUN pip install --no-cache-dir -r /requirements.txt
+# Copy the .env file from the project root to /app inside the container
+COPY ../.env /app/.env
 
-# Descargar recursos NLTK si es necesario
-RUN python -m nltk.downloader punkt stopwords
+# Install Python dependencies
+COPY airflow/requirements.txt /app/requirements.txt
+RUN pip install --no-cache-dir -r /app/requirements.txt
+
+# Download the required NLTK data packages using a Python command.
+RUN python -c "import nltk; nltk.download('punkt')"
+RUN python -c "import nltk; nltk.download('stopwords')"
+RUN python -c "import nltk; nltk.download('punkt_tab')"
