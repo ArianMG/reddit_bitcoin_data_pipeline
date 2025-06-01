@@ -1,0 +1,45 @@
+Private and Restricted Use License
+Version 1.0, May 2025
+
+Copyright (c) 2025 DataChain Labs
+All rights reserved.
+
+1. Grant of Limited License
+
+Permission is hereby granted to individuals explicitly authorized by the copyright holder to use, access, and modify this software solely for the purpose of internal development related to the project for which access has been granted. This license is non-transferable, non-exclusive, and revocable at any time.
+
+2. Restrictions
+
+Unless express, prior, and written permission is granted by the copyright holder, the following activities are strictly prohibited:
+
+(a) Copying, distributing, sublicensing, publishing, or otherwise disclosing any part of this software or its contents.  
+(b) Reusing or incorporating this software, in whole or in part, into any other project or codebase, whether public or private.  
+(c) Using this software outside the scope of the explicitly authorized project.  
+(d) Allowing third parties to access or make use of the software in any capacity.
+
+3. Prohibition on Use in Artificial Intelligence and Machine Learning
+
+This software may not be used, directly or indirectly, to train, fine-tune, test, validate, or feed any machine learning model, artificial intelligence system, or automated algorithm, including but not limited to:
+
+- Inclusion in training or test datasets,
+- Automated scraping or indexing for model consumption,
+- Use in synthetic data generation or prompt injection,
+- Input into any generative or analytical AI system.
+
+This restriction applies regardless of whether the resulting system is commercial, research-based, open-source, or proprietary.
+
+4. No Warranty
+
+This software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, or non-infringement. In no event shall the copyright holder be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from or in connection with the software.
+
+5. Termination
+
+Any breach of the terms herein shall result in immediate termination of the granted license. Upon termination, the licensee must cease all use of the software and destroy all copies.
+
+6. Governing Law
+
+This License shall be governed by and construed in accordance with the laws of Mexico, without regard to its conflict of laws principles. Any disputes may be subject to resolution under applicable international agreements or bilateral cooperation mechanisms.
+
+---
+
+For permission requests or inquiries, please contact: arianmilanes@gmail.com, liangvillarrubia95@gmail.com
