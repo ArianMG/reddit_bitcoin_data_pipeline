@@ -88,7 +88,7 @@ sudo chown -R 50000:0 airflow/logs
 - View logs: `docker compose logs -f airflow`
 - Access Airflow container: `docker compose exec airflow bash`
 - Test producer manually: `docker compose exec app python producer.py`
-- Test consumer manually: `docker compose exec app python consumer_batch.py`
+- Test consumer manually: `docker compose exec app python consumer.py`
 - List Kafka topics:
   ```bash
   docker compose exec kafka /usr/bin/kafka-topics --list --bootstrap-server kafka:9092
